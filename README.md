@@ -44,14 +44,21 @@ This repository contains our preliminary model, training pipeline, and a positio
 
 ## 🎯 Problem Statement
 
-> *"Teams are required to include the preliminary AI models and the results of the position plot inferenced from the subset of IO-VNBD dataset as part of their proposals submitted for evaluation. During the screening process more datasets will be provided for further evaluation of the AI models."*
+> *"AI-ML based Intelligent Dead Reckoning system for seamless navigation"*
 
-Our objective for this stage is to:
-1. Build a preliminary AI model trained on a subset of the IO-VNBD dataset.
-2. Use that model's output to reconstruct the vehicle's estimated position over time.
-3. Visually and quantitatively compare this AI-estimated path against the GPS ground-truth path.
-4. Demonstrate the model generalizes to **unseen driving data** (a different driver/trip than it was trained on).
 
+Conventional navigation applications (like GPS/GNSS) often freeze, jump, or lose connection entirely when a vehicle enters signal-blocked environments such as tunnels, deep valleys, dense forests, or urban canyons. Since most standard Indian commercial vehicles rely solely on the driver’s smartphone rather than high-end, factory-installed wheel-based inertial systems, they experience absolute navigation blackouts.
+
+The goal of this challenge is to build an AI/ML-powered dead reckoning module. The software must use **only a standard smartphone's built-in MEMS accelerometer and gyroscope sensors** to accurately estimate and track the vehicle's position during a GPS outage.
+
+
+### Key Features
+
+* **Smartphone-Only Dead Reckoning** — Estimates vehicle position during GPS outages using only internal MEMS accelerometers and gyroscopes, requiring no OBD-II speed feed.
+* **Bias & Drift Correction** — Machine-learning techniques correct sensor biases, rotational drift, and vibration noise, preventing the divergence typical of naive integration.
+* **Benchmark Validated** — Trained and evaluated on the **IO-VNBD** benchmark dataset to ensure realistic motion modeling and error compensation.
+* **Seamless GPS Transitions** — Automatically detects signal loss to trigger dead reckoning, then cleanly blends position estimates back to GPS-aided tracking upon re-acquisition.
+* **Robust Outage Performance** — Bounds position drift to maintain usable accuracy across blackouts lasting from tens of seconds up to a few minutes (e.g., tunnels, urban canyons).
 ---
 
 ## 💡 Why This Matters
