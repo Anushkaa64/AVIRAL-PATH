@@ -275,10 +275,10 @@ While the core deliverable focuses on GPS-denied position estimation, this techn
 
 | Name | Role | GitHub |
 |---|---|---|
-| Aditya Raj | Student at Bharati Vidyapeeth's College of Engineering | [@rajaditya0806](https://github.com/rajaditya0806) |
+| Aditya Raj | Machine Learning Developer Team Member | [@rajaditya0806](https://github.com/rajaditya0806) |
 | Anushka | Full-Stack Developer | `[GitHub link]` |
 | Jaanvi Batra | PPT-Specialist | `[GitHub link]` |
-| Raju Gupta | `-` | `github` |
+| Raju Gupta | Front-End Lead | @rajugupta40110-hue(https://github.com/rajugupta40110-hue) |
 | Harsh Garg | `-` | `github` |
 | Mann Goswami | `-` | `github` |
 
