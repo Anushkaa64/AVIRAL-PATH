@@ -1,4 +1,4 @@
-# 🚗 Aviral Path — AI-Based Vehicle Positioning under GPS-Denied Conditions
+# 🚗 Aviral Path — AI-ML based Intelligent Dead Reckoning system for seamless navigation
 
 > An LSTM-based inertial navigation system (INS) that estimates a vehicle's position using only onboard motion sensors — no GPS required — built on the **IO-VNBD** dataset.
 
@@ -33,6 +33,8 @@
 ## 🔍 Overview
 
 **Aviral Path** is a preliminary AI system designed to solve one of the core challenges in autonomous and connected vehicle navigation: **estimating a vehicle's real-time position when GPS signal is unavailable or unreliable** — for example, in tunnels, dense urban canyons, underground parking structures, or during deliberate GPS jamming/spoofing.
+
+Navigation apps freeze or jump when GPS drops — in tunnels, multi-level car parks, urban canyons — and most Indian vehicles have only the driver's smartphone, not a factory inertial system wired to the wheels. The ask is an AI dead-reckoning system that uses the phone's own accelerometer and gyroscope to keep tracking position through a GPS blackout, despite the noise of a phone on a dashboard.
 
 We approach this as an **inertial navigation (dead reckoning)** problem, powered by a deep learning model trained on the **IO-VNBD (Inertial and Odometry Vehicle Navigation Benchmark Dataset)**. Instead of relying on classical, error-prone physics-only dead reckoning, we use an **LSTM (Long Short-Term Memory) neural network** to learn vehicle dynamics directly from raw sensor data — accelerometer, gyroscope, and wheel-speed signals — and predict the vehicle's velocity, which is then integrated into a full 2D trajectory.
 
