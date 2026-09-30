@@ -37,7 +37,6 @@ const gnssMarkerIcon = L.divIcon({
 function MapController({ center, autoFollow, tileStyle }) {
   const map = useMap();
   useEffect(() => {
-    // Invalidate map size so OpenStreetMap tiles render at full dimensions
     const timer = setTimeout(() => {
       map.invalidateSize();
     }, 100);
@@ -52,7 +51,6 @@ function MapController({ center, autoFollow, tileStyle }) {
   return null;
 }
 
-// Map Tile Layers Config (OpenStreetMap Standard primary)
 const TILE_LAYERS = {
   osm: {
     name: 'OpenStreetMap Standard',
@@ -136,7 +134,6 @@ export default function MapView({ telemetry }) {
         zoomControl={false}
         className="w-full h-full z-0"
       >
-        {/* Real Basemap Tiles (OpenStreetMap Standard / OpenAI Tech Dark / Carto / Esri) */}
         <TileLayer
           key={tileStyle}
           url={activeTile.url}
@@ -146,20 +143,20 @@ export default function MapView({ telemetry }) {
 
         <MapController center={currentCenter} autoFollow={autoFollow} tileStyle={tileStyle} />
 
-        {/* 1. Red Dashed Line: Raw GNSS Track */}
-        {gnssHistory.length > 1 && (
+        {/* 1. Red Dashed Line: Raw Actual GNSS Track (SHOW ONLY WHEN GNSS IS ON) */}
+        {!killGps && gnssHistory.length > 1 && (
           <Polyline
             positions={gnssHistory}
             pathOptions={{
               color: '#ef4444',
               weight: 3.5,
               dashArray: '6, 6',
-              opacity: killGps ? 0.25 : 0.85
+              opacity: 0.85
             }}
           />
         )}
 
-        {/* 2. Emerald / Amber Solid Line: AI Estimated EKF Track */}
+        {/* 2. Emerald / Amber Solid Line: AI Estimated EKF Track (ALWAYS SHOWN) */}
         {aiHistory.length > 1 && (
           <Polyline
             positions={aiHistory}
@@ -171,12 +168,12 @@ export default function MapView({ telemetry }) {
           />
         )}
 
-        {/* Raw GNSS Marker */}
-        {rawGnss?.lat && rawGnss?.lng && (
+        {/* Raw GNSS Marker (SHOW ONLY WHEN GNSS IS ON) */}
+        {!killGps && rawGnss?.lat && rawGnss?.lng && (
           <Marker position={[rawGnss.lat, rawGnss.lng]} icon={gnssMarkerIcon}>
             <Popup>
               <div className="p-1 text-xs font-mono">
-                <p className="font-bold text-rose-600">RAW GNSS</p>
+                <p className="font-bold text-rose-600">ACTUAL GNSS FEED</p>
                 <p>Lat: {rawGnss.lat}</p>
                 <p>Lng: {rawGnss.lng}</p>
               </div>
@@ -184,7 +181,7 @@ export default function MapView({ telemetry }) {
           </Marker>
         )}
 
-        {/* AI Vehicle Marker */}
+        {/* AI Vehicle Marker (ALWAYS SHOWN) */}
         {aiEstimated?.lat && aiEstimated?.lng && (
           <Marker 
             position={[aiEstimated.lat, aiEstimated.lng]} 
@@ -208,16 +205,18 @@ export default function MapView({ telemetry }) {
         <div className="flex items-center gap-2 font-medium">
           <span className={`w-3.5 h-1 rounded-full ${killGps ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
           <span className={killGps ? 'text-amber-400 font-bold' : 'text-emerald-400 font-semibold'}>
-            {killGps ? 'AI Reckoning (EKF)' : 'AI Sage Fusion Path'}
+            {killGps ? 'AI Reckoning (GPS-Denied)' : 'AI Estimated Path'}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 font-medium">
-          <span className="w-3.5 h-0.5 border-t-2 border-dashed border-rose-500"></span>
-          <span className={killGps ? 'text-rose-400 line-through' : 'opacity-80'}>
-            Raw GNSS Feed
-          </span>
-        </div>
+        {!killGps && (
+          <div className="flex items-center gap-2 font-medium">
+            <span className="w-3.5 h-0.5 border-t-2 border-dashed border-rose-500"></span>
+            <span className="text-rose-500 font-medium">
+              Actual GNSS Track
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Map Layer Switcher Button & Menu */}
@@ -283,4 +282,3 @@ export default function MapView({ telemetry }) {
     </div>
   );
 }
-

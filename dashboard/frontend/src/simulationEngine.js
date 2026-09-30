@@ -6,7 +6,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Delhi-Gurugram Expressway & Cyber City",
     description: "High-speed expressway INS dataset with DLF Cyber City Underpass satellite signal loss zone",
     location: "Delhi NCR, India (Connaught Place ➔ NH-48 ➔ Cyber City Underpass)",
-    nominal_speed: 4.5, // m/s (~16 km/h for smooth, realistic web map movement)
+    nominal_speed: 12.0, // m/s (~43 km/h - ideal presentation speed)
     waypoints: [
       [28.6315, 77.2167],
       [28.5912, 77.1615],
@@ -23,7 +23,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Mumbai Bandra-Worli Sea Link & Coastal Road",
     description: "Coastal INS navigation dataset over Arabian Sea cable-stayed bridge & Worli tunnel",
     location: "Mumbai, Maharashtra, India (Bandra ➔ Sea Link Bridge ➔ Marine Drive)",
-    nominal_speed: 4.0,
+    nominal_speed: 11.0,
     waypoints: [
       [19.0435, 72.8195],
       [19.0320, 72.8150],
@@ -39,7 +39,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Bengaluru Outer Ring Road & Tech Corridor",
     description: "Dense IT corridor INS odometry dataset featuring multi-level elevated flyovers & heavy tree canopy",
     location: "Bengaluru, Karnataka, India (Silk Board ➔ Bellandur EcoSpace ➔ Marathahalli)",
-    nominal_speed: 3.5,
+    nominal_speed: 10.0,
     waypoints: [
       [12.9172, 77.6228],
       [12.9260, 77.6762],
@@ -54,7 +54,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Shimla-Manali Himalayan Highway Corridor",
     description: "Mountainous terrain INS navigation with hairpin curve dynamics & deep mountain gorge GPS shadow",
     location: "Himachal Pradesh, India (Kullu Valley ➔ Solang ➔ Atal Tunnel Approach)",
-    nominal_speed: 3.0,
+    nominal_speed: 9.0,
     waypoints: [
       [31.9578, 77.1095],
       [32.0800, 77.1650],
@@ -69,7 +69,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: New Delhi Connaught Place & India Gate",
     description: "Historic radial roundabout navigation dataset with high building shadowing",
     location: "New Delhi, India (Connaught Place ➔ Rajpath ➔ India Gate ➔ Lodhi Garden)",
-    nominal_speed: 2.5,
+    nominal_speed: 8.0,
     waypoints: [
       [28.6315, 77.2167],
       [28.6275, 77.2195],
@@ -88,7 +88,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD Benchmark: UK Highway & Rural (Oxfordshire)",
     description: "Inertial & Odometry Vehicle Navigation Benchmark Dataset - 100Hz Smartphone + Vehicle IMU",
     location: "Coventry / Oxford, United Kingdom",
-    nominal_speed: 4.0,
+    nominal_speed: 12.0,
     waypoints: [
       [52.3840, -1.5605],
       [52.3892, -1.5540],
@@ -165,7 +165,7 @@ export class BrowserSimulator {
     return true;
   }
 
-  uploadCustomDataset(name, waypoints, speed = 4.0) {
+  uploadCustomDataset(name, waypoints, speed = 12.0) {
     if (!waypoints || waypoints.length < 2) return false;
     const customId = `custom_${Date.now()}`;
     this.customDatasets[customId] = {
@@ -190,11 +190,11 @@ export class BrowserSimulator {
   updateSimulation() {
     const now = Date.now();
     const dtRaw = (now - this.lastTime) / 1000;
-    const dt = Math.min(Math.max(dtRaw, 0.05), 0.25);
+    const dt = Math.min(Math.max(dtRaw, 0.05), 0.3);
     this.lastTime = now;
 
     if (!this.isPaused && this.totalRouteMeters > 0) {
-      const nominalSpeed = this.activeDataset.nominal_speed || 4.0; // m/s
+      const nominalSpeed = (this.activeDataset.nominal_speed || 12.0) * 7.5; // Presentable demo playback speed
       this.currentDistance += nominalSpeed * this.playbackSpeed * dt;
     }
 
@@ -221,12 +221,12 @@ export class BrowserSimulator {
     let headingDeg = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360;
 
     // Telemetry noise simulation
-    const noiseFactor = 0.00002 * this.noiseLevel;
+    const noiseFactor = 0.00003 * this.noiseLevel;
     const rawGnssLat = trueLat + (Math.random() - 0.5) * noiseFactor;
     const rawGnssLng = trueLng + (Math.random() - 0.5) * noiseFactor;
 
-    const aiLat = trueLat + (Math.random() - 0.5) * 0.000002;
-    const aiLng = trueLng + (Math.random() - 0.5) * 0.000002;
+    const aiLat = trueLat + (Math.random() - 0.5) * 0.000003;
+    const aiLng = trueLng + (Math.random() - 0.5) * 0.000003;
 
     let gnssStatus = "ACTIVE";
     let secondsWithoutGps = 0;
@@ -254,7 +254,7 @@ export class BrowserSimulator {
       description: d.description
     }));
 
-    const speedMs = (this.activeDataset.nominal_speed || 4.0) * this.playbackSpeed;
+    const speedMs = (this.activeDataset.nominal_speed || 12.0) * this.playbackSpeed;
     const remainingMeters = Math.max(0, this.totalRouteMeters - routeDistance);
     const etaMin = speedMs > 0 ? (remainingMeters / speedMs / 60) : 0;
 
