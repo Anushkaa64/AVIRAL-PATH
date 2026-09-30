@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚗 Aviral Path — AI-Based Vehicle Positioning under GPS-Denied Conditions
 
 > An LSTM-based inertial navigation system (INS) that estimates a vehicle's position using only onboard motion sensors — no GPS required — built on the **IO-VNBD** dataset.
@@ -295,3 +296,65 @@ While the core deliverable focuses on GPS-denied position estimation, this techn
 
 
 <p align="center">Built with ⚙️ and 🧠 by <b>Team Aviral Path</b></p>
+=======
+# 🚀 Aviral Path — Intelligent Dead Reckoning Dashboard
+
+> **Autonomous Navigation Telemetry & IMU Dead Reckoning System**
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Click%20Here-emerald?style=for-the-badge&logo=vercel)](YOUR_DEPLOYED_URL_HERE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Vite](https://img.shields.io/badge/Vite-6.x-purple?style=for-the-badge&logo=vite)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+
+---
+
+## 🌟 Live Interactive Dashboard
+🌐 **Live Hosted Link for Judges:**  
+👉 **[YOUR_DEPLOYED_URL_HERE](YOUR_DEPLOYED_URL_HERE)** *(Replace with your Vercel / Netlify / GitHub Pages deployment URL)*
+
+---
+
+## 📌 Project Overview
+**Aviral Path** is an advanced vehicle dead-reckoning and telemetry dashboard designed for high-accuracy GPS/GNSS outage simulation, real-time sensor processing, and benchmark evaluation on datasets like **IO-VNBD**.
+
+### Key Features
+- 🗺️ **Interactive Real-Time Map**: Map rendering with Leaflet, tracking live vehicle trajectory vs raw GNSS vs dead-reckoning AI estimates.
+- ⚡ **GNSS Blackout Simulation**: Simulate tunnel loss / signal jamming and test IMU sensor fallback instantly.
+- 📊 **Telemetry Waveforms**: High-frequency sensor sparklines (Accelerometer, Gyroscope, Velocity, Drift).
+- 📁 **Custom Dataset Loader**: Drag-and-drop custom CSV/JSON benchmark trajectories or load preconfigured Indian benchmark datasets.
+- 📥 **CSV Telemetry Export**: Export route logs directly for offline validation.
+
+---
+
+## 🛠️ Quick Start Guide
+
+### 1. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open `http://localhost:5173` to launch the dashboard locally.
+
+### 2. Backend Setup (Optional API Server)
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
+
+---
+
+## 📁 Repository Structure
+```
+├── frontend/             # React + Vite Dashboard UI & Map components
+│   ├── src/              # Components, MapView, Telemetry
+│   ├── public/           # Sample IO-VNBD datasets
+│   └── package.json
+├── backend/              # Python FastAPI & Dead Reckoning algorithm engine
+│   ├── dead_reckoning.py
+│   ├── main.py
+│   └── requirements.txt
+└── README.md
+```
+>>>>>>> 5085e67 (Add Aviral Path Intelligent Dead Reckoning Dashboard)
