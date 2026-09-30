@@ -6,7 +6,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Delhi-Gurugram Expressway & Cyber City",
     description: "High-speed expressway INS dataset with DLF Cyber City Underpass satellite signal loss zone",
     location: "Delhi NCR, India (Connaught Place ➔ NH-48 ➔ Cyber City Underpass)",
-    nominal_speed: 18.0,
+    nominal_speed: 4.5, // m/s (~16 km/h for smooth, realistic web map movement)
     waypoints: [
       [28.6315, 77.2167],
       [28.5912, 77.1615],
@@ -23,7 +23,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Mumbai Bandra-Worli Sea Link & Coastal Road",
     description: "Coastal INS navigation dataset over Arabian Sea cable-stayed bridge & Worli tunnel",
     location: "Mumbai, Maharashtra, India (Bandra ➔ Sea Link Bridge ➔ Marine Drive)",
-    nominal_speed: 15.5,
+    nominal_speed: 4.0,
     waypoints: [
       [19.0435, 72.8195],
       [19.0320, 72.8150],
@@ -39,7 +39,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Bengaluru Outer Ring Road & Tech Corridor",
     description: "Dense IT corridor INS odometry dataset featuring multi-level elevated flyovers & heavy tree canopy",
     location: "Bengaluru, Karnataka, India (Silk Board ➔ Bellandur EcoSpace ➔ Marathahalli)",
-    nominal_speed: 12.5,
+    nominal_speed: 3.5,
     waypoints: [
       [12.9172, 77.6228],
       [12.9260, 77.6762],
@@ -54,7 +54,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: Shimla-Manali Himalayan Highway Corridor",
     description: "Mountainous terrain INS navigation with hairpin curve dynamics & deep mountain gorge GPS shadow",
     location: "Himachal Pradesh, India (Kullu Valley ➔ Solang ➔ Atal Tunnel Approach)",
-    nominal_speed: 11.0,
+    nominal_speed: 3.0,
     waypoints: [
       [31.9578, 77.1095],
       [32.0800, 77.1650],
@@ -69,7 +69,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD India: New Delhi Connaught Place & India Gate",
     description: "Historic radial roundabout navigation dataset with high building shadowing",
     location: "New Delhi, India (Connaught Place ➔ Rajpath ➔ India Gate ➔ Lodhi Garden)",
-    nominal_speed: 7.5,
+    nominal_speed: 2.5,
     waypoints: [
       [28.6315, 77.2167],
       [28.6275, 77.2195],
@@ -88,7 +88,7 @@ export const BENCHMARK_DATASETS = {
     name: "IO-VNBD Benchmark: UK Highway & Rural (Oxfordshire)",
     description: "Inertial & Odometry Vehicle Navigation Benchmark Dataset - 100Hz Smartphone + Vehicle IMU",
     location: "Coventry / Oxford, United Kingdom",
-    nominal_speed: 16.5,
+    nominal_speed: 4.0,
     waypoints: [
       [52.3840, -1.5605],
       [52.3892, -1.5540],
@@ -102,6 +102,16 @@ export const BENCHMARK_DATASETS = {
     ]
   }
 };
+
+// Calculate geodesic distance in meters between two [lat, lng] coordinates
+function getDistanceMeters(pt1, pt2) {
+  const latMid = (pt1[0] + pt2[0]) / 2;
+  const metersPerLat = 111139.0;
+  const metersPerLng = 111139.0 * Math.cos(latMid * Math.PI / 180);
+  const dLat = (pt2[0] - pt1[0]) * metersPerLat;
+  const dLng = (pt2[1] - pt1[1]) * metersPerLng;
+  return Math.hypot(dLat, dLng);
+}
 
 export class BrowserSimulator {
   constructor() {
@@ -117,6 +127,27 @@ export class BrowserSimulator {
     this.gpsLostTime = null;
     this.frozenGnss = null;
     this.lastTime = Date.now();
+
+    this.initPathMetrics();
+  }
+
+  initPathMetrics() {
+    const waypoints = this.activeDataset.waypoints;
+    this.segments = [];
+    this.totalRouteMeters = 0;
+
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const p1 = waypoints[i];
+      const p2 = waypoints[i + 1];
+      const dist = getDistanceMeters(p1, p2);
+      this.segments.push({
+        p1,
+        p2,
+        length: dist,
+        startDist: this.totalRouteMeters
+      });
+      this.totalRouteMeters += dist;
+    }
   }
 
   setDataset(datasetId) {
@@ -129,11 +160,12 @@ export class BrowserSimulator {
     } else {
       return false;
     }
+    this.initPathMetrics();
     this.reset();
     return true;
   }
 
-  uploadCustomDataset(name, waypoints, speed = 12.0) {
+  uploadCustomDataset(name, waypoints, speed = 4.0) {
     if (!waypoints || waypoints.length < 2) return false;
     const customId = `custom_${Date.now()}`;
     this.customDatasets[customId] = {
@@ -157,42 +189,44 @@ export class BrowserSimulator {
 
   updateSimulation() {
     const now = Date.now();
-    const dt = Math.min((now - this.lastTime) / 1000, 0.5);
+    const dtRaw = (now - this.lastTime) / 1000;
+    const dt = Math.min(Math.max(dtRaw, 0.05), 0.25);
     this.lastTime = now;
 
-    if (!this.isPaused) {
-      const nominalSpeed = this.activeDataset.nominal_speed || 12.0;
-      this.currentDistance += nominalSpeed * this.playbackSpeed * dt * 12.0;
+    if (!this.isPaused && this.totalRouteMeters > 0) {
+      const nominalSpeed = this.activeDataset.nominal_speed || 4.0; // m/s
+      this.currentDistance += nominalSpeed * this.playbackSpeed * dt;
     }
 
-    const waypoints = this.activeDataset.waypoints;
-    const numWaypoints = waypoints.length;
+    const routeDistance = this.totalRouteMeters > 0 ? (this.currentDistance % this.totalRouteMeters) : 0;
+    const progressPct = this.totalRouteMeters > 0 ? (routeDistance / this.totalRouteMeters) * 100 : 0;
 
-    // Calculate position along waypoints loop
-    const totalSegments = numWaypoints - 1;
-    const progress = (this.currentDistance % 1000) / 1000;
-    const floatIdx = progress * totalSegments;
-    const segIdx = Math.floor(floatIdx) % totalSegments;
-    const segmentRatio = floatIdx - Math.floor(floatIdx);
+    // Find current active route segment
+    let currentSeg = this.segments[0] || { p1: [0, 0], p2: [0, 0], length: 1, startDist: 0 };
+    for (let i = 0; i < this.segments.length; i++) {
+      const seg = this.segments[i];
+      if (routeDistance >= seg.startDist && routeDistance <= seg.startDist + seg.length) {
+        currentSeg = seg;
+        break;
+      }
+    }
 
-    const ptA = waypoints[segIdx];
-    const ptB = waypoints[(segIdx + 1) % numWaypoints];
-
-    const trueLat = ptA[0] + (ptB[0] - ptA[0]) * segmentRatio;
-    const trueLng = ptA[1] + (ptB[1] - ptA[1]) * segmentRatio;
+    const segRatio = currentSeg.length > 0 ? (routeDistance - currentSeg.startDist) / currentSeg.length : 0;
+    const trueLat = currentSeg.p1[0] + (currentSeg.p2[0] - currentSeg.p1[0]) * segRatio;
+    const trueLng = currentSeg.p1[1] + (currentSeg.p2[1] - currentSeg.p1[1]) * segRatio;
 
     // Calculate heading angle
-    const dLat = ptB[0] - ptA[0];
-    const dLng = ptB[1] - ptA[1];
+    const dLat = currentSeg.p2[0] - currentSeg.p1[0];
+    const dLng = currentSeg.p2[1] - currentSeg.p1[1];
     let headingDeg = (Math.atan2(dLng, dLat) * 180 / Math.PI + 360) % 360;
 
-    // Generate telemetry noise
-    const noiseFactor = 0.00005 * this.noiseLevel;
+    // Telemetry noise simulation
+    const noiseFactor = 0.00002 * this.noiseLevel;
     const rawGnssLat = trueLat + (Math.random() - 0.5) * noiseFactor;
     const rawGnssLng = trueLng + (Math.random() - 0.5) * noiseFactor;
 
-    const aiLat = trueLat + (Math.random() - 0.5) * 0.000005;
-    const aiLng = trueLng + (Math.random() - 0.5) * 0.000005;
+    const aiLat = trueLat + (Math.random() - 0.5) * 0.000002;
+    const aiLng = trueLng + (Math.random() - 0.5) * 0.000002;
 
     let gnssStatus = "ACTIVE";
     let secondsWithoutGps = 0;
@@ -220,7 +254,9 @@ export class BrowserSimulator {
       description: d.description
     }));
 
-    const speedMs = (this.activeDataset.nominal_speed || 12.0) * this.playbackSpeed;
+    const speedMs = (this.activeDataset.nominal_speed || 4.0) * this.playbackSpeed;
+    const remainingMeters = Math.max(0, this.totalRouteMeters - routeDistance);
+    const etaMin = speedMs > 0 ? (remainingMeters / speedMs / 60) : 0;
 
     return {
       timestamp: Math.floor(now / 1000),
@@ -239,8 +275,8 @@ export class BrowserSimulator {
       speed_ms: +speedMs.toFixed(1),
       speed_kmh: +(speedMs * 3.6).toFixed(1),
       playback_speed: this.playbackSpeed,
-      eta_min: 14.2,
-      progress_pct: +(progress * 100).toFixed(1),
+      eta_min: +etaMin.toFixed(1),
+      progress_pct: +progressPct.toFixed(1),
       sensors: {
         accel_x: +(Math.sin(now / 400) * 0.4 + (Math.random() - 0.5) * 0.1).toFixed(3),
         accel_y: +(Math.cos(now / 400) * 0.4 + (Math.random() - 0.5) * 0.1).toFixed(3),
