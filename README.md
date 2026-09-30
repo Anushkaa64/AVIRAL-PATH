@@ -2,7 +2,7 @@
 
 > **Autonomous Navigation Telemetry & IMU Dead Reckoning System**
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Click%20Here-emerald?style=for-the-badge&logo=vercel)](YOUR_DEPLOYED_URL_HERE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-aviral--path.vercel.app-emerald?style=for-the-badge&logo=vercel)](https://aviral-path.vercel.app)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python)]()
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-Keras-orange?style=for-the-badge&logo=tensorflow)]()
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
@@ -13,7 +13,7 @@
 ## 🌟 Live Interactive Dashboard for Judges
 
 🌐 **Live Hosted Link:**  
-👉 **[YOUR_DEPLOYED_URL_HERE](YOUR_DEPLOYED_URL_HERE)** *(Paste your Vercel URL here!)*
+👉 **[https://aviral-path.vercel.app](https://aviral-path.vercel.app)**
 
 *The live dashboard allows judges to visually inspect live dead reckoning trajectory estimations, trigger GNSS blackout / tunnel simulations, load custom IO-VNBD dataset CSV files, and view real-time sensor telemetry.*
 
