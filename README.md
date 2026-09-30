@@ -287,7 +287,7 @@ While the core deliverable focuses on GPS-denied position estimation, this techn
 | Aditya Raj | Machine Learning Developer Team Member | [@rajaditya0806](https://github.com/rajaditya0806) |
 | Anushka | Full-Stack Developer | [@Anushkaa64](https://github.com/Anushkaa64) |
 | Jaanvi Batra | PPT-Specialist | `[GitHub link]` |
-| Raju Gupta | Front-End Lead | @rajugupta40110-hue(https://github.com/rajugupta40110-hue) |
+| Raju Gupta | Front-End Lead | [@rajugupta40110-hue](https://github.com/rajugupta40110-hue) |
 | Harsh Garg | `-` | [@harshgarg5107](https://github.com/harshgarg5107) |
 | Mann Goswami | `-` | [manngoswami16-sketch](https://github.com/manngoswami16-sketch) |
 
