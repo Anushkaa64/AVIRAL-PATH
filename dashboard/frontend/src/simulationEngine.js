@@ -194,7 +194,7 @@ export class BrowserSimulator {
     this.lastTime = now;
 
     if (!this.isPaused && this.totalRouteMeters > 0) {
-      const nominalSpeed = (this.activeDataset.nominal_speed || 12.0) * 7.5; // Presentable demo playback speed
+      const nominalSpeed = this.activeDataset.nominal_speed || 12.0; // Standard 1.0x real-world driving speed
       this.currentDistance += nominalSpeed * this.playbackSpeed * dt;
     }
 
