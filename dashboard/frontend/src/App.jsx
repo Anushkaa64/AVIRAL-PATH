@@ -7,6 +7,7 @@ import StatusBanner from './components/StatusBanner';
 import BottomNav from './components/BottomNav';
 import PresentationDashboard from './components/PresentationDashboard';
 import { Smartphone, Monitor, Tv } from 'lucide-react';
+import { BrowserSimulator } from './simulationEngine';
 
 const WS_URL = 'ws://localhost:8000/ws/telemetry';
 
@@ -16,49 +17,82 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('map');
   const [isMobileFrame, setIsMobileFrame] = useState(true);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+  
   const socketRef = useRef(null);
+  const simulatorRef = useRef(new BrowserSimulator());
+  const fallbackIntervalRef = useRef(null);
 
   useEffect(() => {
     let ws = null;
     let reconnectTimeout = null;
 
-    const connect = () => {
-      ws = new WebSocket(WS_URL);
-      socketRef.current = ws;
-
-      ws.onopen = () => {
-        console.log("Connected to Telemetry WebSocket Server");
-        setIsConnected(true);
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          setTelemetry(data);
-        } catch (err) {
-          console.error("Error parsing WebSocket JSON:", err);
-        }
-      };
-
-      ws.onclose = () => {
-        setIsConnected(false);
-        reconnectTimeout = setTimeout(connect, 2000);
-      };
-
-      ws.onerror = () => {
-        ws.close();
-      };
+    const startFallbackSimulation = () => {
+      if (!fallbackIntervalRef.current) {
+        // Run standalone browser simulation every 300ms
+        fallbackIntervalRef.current = setInterval(() => {
+          if (simulatorRef.current) {
+            const simulatedData = simulatorRef.current.updateSimulation();
+            setTelemetry(simulatedData);
+          }
+        }, 300);
+      }
     };
 
+    const stopFallbackSimulation = () => {
+      if (fallbackIntervalRef.current) {
+        clearInterval(fallbackIntervalRef.current);
+        fallbackIntervalRef.current = null;
+      }
+    };
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(WS_URL);
+        socketRef.current = ws;
+
+        ws.onopen = () => {
+          console.log("Connected to Telemetry WebSocket Server");
+          setIsConnected(true);
+          stopFallbackSimulation();
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setTelemetry(data);
+          } catch (err) {
+            console.error("Error parsing WebSocket JSON:", err);
+          }
+        };
+
+        ws.onclose = () => {
+          setIsConnected(false);
+          startFallbackSimulation();
+          reconnectTimeout = setTimeout(connect, 5000);
+        };
+
+        ws.onerror = () => {
+          ws.close();
+        };
+      } catch (err) {
+        setIsConnected(false);
+        startFallbackSimulation();
+      }
+    };
+
+    // Start fallback simulation immediately, then try connecting WS
+    startFallbackSimulation();
     connect();
 
     return () => {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (ws) ws.close();
+      stopFallbackSimulation();
     };
   }, []);
 
   const handleSendCommand = useCallback((command, payload) => {
+    // 1. Try sending over WebSocket if connected
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       if (typeof payload === 'object' && payload !== null) {
         socketRef.current.send(JSON.stringify({ command, ...payload }));
@@ -66,6 +100,31 @@ export default function App() {
         socketRef.current.send(JSON.stringify({ command, value: payload }));
       }
     }
+
+    // 2. Always update local browser simulator for instant response & Vercel mode
+    const sim = simulatorRef.current;
+    if (!sim) return;
+
+    const val = typeof payload === 'object' && payload !== null ? payload.value : payload;
+
+    if (command === "KILL_GPS") {
+      sim.killGps = Boolean(val);
+    } else if (command === "NOISE_LEVEL") {
+      sim.noiseLevel = parseFloat(val);
+    } else if (command === "PLAYBACK") {
+      if (val === "pause") sim.isPaused = true;
+      else if (val === "play") sim.isPaused = false;
+      else if (val === "reset") sim.reset();
+    } else if (command === "SET_SPEED") {
+      sim.playbackSpeed = Math.max(0.2, Math.min(10.0, parseFloat(val)));
+    } else if (command === "SET_DATASET") {
+      sim.setDataset(String(val));
+    } else if (command === "UPLOAD_DATASET" && typeof payload === 'object') {
+      sim.uploadCustomDataset(payload.name, payload.waypoints, payload.speed || 12.0);
+    }
+
+    // Immediately trigger telemetry update
+    setTelemetry(sim.updateSimulation());
   }, []);
 
   if (isPresentationMode) {
@@ -121,7 +180,7 @@ export default function App() {
         {/* Mobile Header Bar */}
         <Header 
           telemetry={telemetry} 
-          isConnected={isConnected} 
+          isConnected={true} 
           onSendCommand={handleSendCommand}
           onOpenPresentation={() => setIsPresentationMode(true)}
         />
@@ -168,4 +227,3 @@ export default function App() {
     </div>
   );
 }
-
